@@ -162,3 +162,58 @@ void heap_collect()
         heap_free(to_free[i]);
     }
 }
+void* heap_realloc(void* ptr, size_t size) {
+    // If ptr is NULL, realloc should act like malloc
+    if (ptr == NULL) {
+        return heap_malloc(size);
+    }
+
+    // If size is zero, realloc should act like free
+    if (size == 0) {
+        heap_free(ptr);
+        return NULL;
+    }
+
+    Chunk* chunk = get_chunk_from_ptr(ptr);
+    // If ptr was not returned by malloc or realloc, return NULL
+    if (chunk == NULL) {
+        return NULL;
+    }
+
+    // If the current size is larger or equal to the new size, return the original pointer
+    if (chunk->size >= size) {
+        return ptr;
+    }
+
+    // Allocate a new block of memory
+    void* new_ptr = heap_malloc(size);
+    if (new_ptr == NULL) {
+        return NULL;
+    }
+
+    // Copy the old data to the new block
+    memcpy(new_ptr, ptr, chunk->size);
+
+    // Free the old block
+    heap_free(ptr);
+
+    return new_ptr;
+}
+void* heap_realloc(void* ptr, size_t size) {
+    if (!ptr) {
+        return heap_malloc(size);
+    }
+
+    Block* block = (Block*)ptr - 1;
+    if (block->size >= size) {
+        return ptr;
+    }
+
+    void* new_ptr;
+    new_ptr = heap_malloc(size);
+    if (!new_ptr) {
+        return NULL;
+    }
+    memcpy(new_ptr, ptr, block->size);
+    heap_free(ptr);
+    return new_ptr;
