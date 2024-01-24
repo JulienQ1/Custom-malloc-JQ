@@ -211,3 +211,22 @@ void* heap_realloc(void* ptr, size_t size) {
     return new_ptr;
 }
 
+void* heap_realloc(void* ptr, size_t size) {
+    if (!ptr) {
+        return heap_malloc(size);
+    }
+
+    Block* block = (Block*)ptr - 1;
+    if (block->size >= size) {
+        return ptr;
+    }
+
+    void* new_ptr;
+    new_ptr = heap_malloc(size);
+    if (!new_ptr) {
+        return NULL;
+    }
+    memcpy(new_ptr, ptr, block->size);
+    heap_free(ptr);
+    return new_ptr;
+
